@@ -6,7 +6,7 @@
   <title>Leprox</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
-    
+
     * {
       margin: 0;
       padding: 0;
@@ -101,9 +101,63 @@
       margin: 0;
       font-size: 0.8rem;
       color: #aaa;
-      width: 160px; /* ✅ sabit genişlik — zıplama yok */
+      width: 160px;
       text-align: center;
-      white-space: nowrap;
+    }
+
+    /* Ses kontrolü */
+    .volume-control {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: none; /* Başta görünmesin */
+      align-items: center;
+      gap: 10px;
+      z-index: 9999;
+      pointer-events: auto;
+    }
+
+    .volume-icon {
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .volume-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .volume-slider {
+      width: 0;
+      opacity: 0;
+      transition: width 0.4s ease, opacity 0.4s ease;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      appearance: none;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-control:hover .volume-slider {
+      width: 130px;
+      opacity: 1;
+    }
+
+    .volume-slider::-webkit-slider-runnable-track {
+      background: linear-gradient(90deg, #999, #fff);
+      height: 6px;
+      border-radius: 10px;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      margin-top: -4px;
     }
 
     @keyframes fadeIn {
@@ -116,9 +170,8 @@
       to { opacity: 0; }
     }
   </style>
-  <script src="https://kit.fontawesome.com/a2d9d5df91.js" crossorigin="anonymous"></script>
 </head>
-<body>
+<body oncontextmenu="return false;">
   <div class="enter" id="enterBtn">click to enter...</div>
 
   <div class="container" id="main">
@@ -135,50 +188,39 @@
     </div>
   </div>
 
+  <!-- Ses kontrolü -->
+  <div class="volume-control" id="volumeControl">
+    <img src="volume.png" class="volume-icon" alt="volume">
+    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="1">
+  </div>
+
   <script>
     const enterText = document.getElementById('enterBtn');
     const main = document.getElementById('main');
     const audio = document.getElementById('audio');
     const musicInfo = document.getElementById('music-info');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeControl = document.getElementById('volumeControl');
     let entered = false;
 
-    // 🔒 Sağ tık tamamen kapalı
-    document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // 🔓 Sadece ilk tıklamada aktif
-    function enterSite() {
+    // Sadece ilk click çalışsın
+    document.body.addEventListener('click', (e) => {
       if (entered) return;
       entered = true;
 
-      // Artık hiçbir yere tıklanamasın
-      document.body.style.pointerEvents = "none";
-
-      // Ama audio çalışmaya devam edebilsin
-      audio.style.pointerEvents = "auto";
-
-      // İmleci normale döndür
-      document.body.style.cursor = "default";
-
-      // "click to enter" kaybolsun
       enterText.style.animation = 'fadeOut 1s forwards';
-
       setTimeout(() => {
         enterText.style.display = 'none';
-        
-        // Arka plan gelsin
         document.body.style.backgroundImage = "url('background.jpg')";
         document.body.style.transition = "background-image 2s ease-in-out, opacity 2s ease";
         document.body.style.opacity = "1";
-
-        // Kart gözüksün ve müzik başlasın
         main.style.display = 'block';
+        volumeControl.style.display = 'flex'; // Ses ikonu click sonrası gelsin
         audio.play();
       }, 1000);
-    }
+    });
 
-    document.body.addEventListener('click', enterSite);
-
-    // Süre güncelleme
+    // Müzik süresi
     audio.addEventListener('timeupdate', () => {
       const current = formatTime(audio.currentTime);
       const duration = formatTime(audio.duration);
@@ -191,6 +233,11 @@
       const secs = Math.floor(seconds % 60);
       return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
     }
+
+    // Ses kontrolü (sadece slider üzerinden çalışır)
+    volumeSlider.addEventListener('input', () => {
+      audio.volume = volumeSlider.value;
+    });
   </script>
 </body>
 </html>
