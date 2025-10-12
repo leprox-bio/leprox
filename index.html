@@ -26,6 +26,7 @@
       overflow: hidden;
       transition: background-image 2s ease, opacity 2s ease;
       cursor: pointer;
+      user-select: none;
     }
 
     .enter {
@@ -79,25 +80,6 @@
       margin-bottom: 25px;
     }
 
-    .icons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .icons i {
-      font-size: 1.5rem;
-      color: #777;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .icons i:hover {
-      color: white;
-      transform: scale(1.1);
-    }
-
     .music-player {
       background: rgba(0,0,0,0.4);
       padding: 10px 20px;
@@ -119,6 +101,9 @@
       margin: 0;
       font-size: 0.8rem;
       color: #aaa;
+      width: 160px; /* ✅ sabit genişlik — zıplama yok */
+      text-align: center;
+      white-space: nowrap;
     }
 
     @keyframes fadeIn {
@@ -157,12 +142,21 @@
     const musicInfo = document.getElementById('music-info');
     let entered = false;
 
-    // Ekranın herhangi bir yerine tıklanınca
-    document.body.addEventListener('click', () => {
-      if (entered) return; // sadece bir kez
+    // 🔒 Sağ tık tamamen kapalı
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // 🔓 Sadece ilk tıklamada aktif
+    function enterSite() {
+      if (entered) return;
       entered = true;
 
-      // imleci normale döndür
+      // Artık hiçbir yere tıklanamasın
+      document.body.style.pointerEvents = "none";
+
+      // Ama audio çalışmaya devam edebilsin
+      audio.style.pointerEvents = "auto";
+
+      // İmleci normale döndür
       document.body.style.cursor = "default";
 
       // "click to enter" kaybolsun
@@ -180,7 +174,9 @@
         main.style.display = 'block';
         audio.play();
       }, 1000);
-    });
+    }
+
+    document.body.addEventListener('click', enterSite);
 
     // Süre güncelleme
     audio.addEventListener('timeupdate', () => {
