@@ -25,7 +25,7 @@
       align-items: center;
       overflow: hidden;
       transition: background-image 2s ease, opacity 2s ease;
-      cursor: pointer;
+      cursor: pointer; /* Başta tıklanabilir */
       user-select: none;
     }
 
@@ -203,10 +203,14 @@
     const volumeControl = document.getElementById('volumeControl');
     let entered = false;
 
-    // Sadece ilk click çalışsın
+    // Sayfa genelinde tıklama engelleme durumu
+    let locked = false;
+
     document.body.addEventListener('click', (e) => {
-      if (entered) return;
+      // Eğer daha önce giriş yapılmışsa artık body tıklanmasın
+      if (entered || locked) return;
       entered = true;
+      locked = true;
 
       enterText.style.animation = 'fadeOut 1s forwards';
       setTimeout(() => {
@@ -214,10 +218,16 @@
         document.body.style.backgroundImage = "url('background.jpg')";
         document.body.style.transition = "background-image 2s ease-in-out, opacity 2s ease";
         document.body.style.opacity = "1";
+        document.body.style.cursor = "default"; // 🔹 İmleç artık normal ok olur
         main.style.display = 'block';
-        volumeControl.style.display = 'flex'; // Ses ikonu click sonrası gelsin
+        volumeControl.style.display = 'flex';
         audio.play();
       }, 1000);
+    });
+
+    // Ses kontrolü sadece burada aktif
+    volumeControl.addEventListener('click', (e) => {
+      e.stopPropagation(); // body click event’ine gitmesin
     });
 
     // Müzik süresi
@@ -234,7 +244,7 @@
       return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    // Ses kontrolü (sadece slider üzerinden çalışır)
+    // Ses kontrolü
     volumeSlider.addEventListener('input', () => {
       audio.volume = volumeSlider.value;
     });
